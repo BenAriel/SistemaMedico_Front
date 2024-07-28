@@ -2,7 +2,6 @@ import * as React from 'react';
 import { DataGrid, GridColDef, GridLocaleText } from '@mui/x-data-grid';
 
 const localeText: Partial<GridLocaleText> = {
-  // Tradução para o texto da quantidade de linhas por página
   MuiTablePagination: {
     labelRowsPerPage: 'Linhas por página:',
     labelDisplayedRows: ({ from, to, count }) =>
@@ -17,7 +16,7 @@ interface TabelaProps {
 
 export const Tabela: React.FC<TabelaProps> = ({ columns, rows }) => {
   return (
-    <div style={{ height: 400, width: '100%' }}>
+    <div className="h-[75vh] w-full mx-auto max-w-6xl">
       <DataGrid
         rows={rows}
         columns={columns}
@@ -27,11 +26,13 @@ export const Tabela: React.FC<TabelaProps> = ({ columns, rows }) => {
             paginationModel: { page: 0, pageSize: 5 },
           },
         }}
-        pageSizeOptions={[5,10]}
+        pageSizeOptions={[5, 10]}
         getRowClassName={(params) =>
           params.indexRelativeToCurrentPage % 2 === 0 ? 'bg-gray-100' : 'bg-white'
         }
         checkboxSelection={false}
+        autoHeight
+        disableColumnMenu
       />
     </div>
   );

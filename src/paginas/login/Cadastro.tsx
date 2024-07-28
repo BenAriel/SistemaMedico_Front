@@ -6,7 +6,7 @@ export const Cadastro = () => {
   const [novoUser, setNovoUser] = useState({
     name: '',
     email: '',
-    password: ''
+    senha: ''
   });
 
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -27,35 +27,47 @@ export const Cadastro = () => {
     }
   };
 
-  const handleOnClick = () => {
-    if (novoUser.password !== confirmPassword) {
+  const handleOnClick = async () => {
+    // Validação básica
+    if (!novoUser.name || !novoUser.email || !novoUser.senha) {
+      alert('Todos os campos são obrigatórios.');
+      return;
+    }
+  
+    if (novoUser.senha !== confirmPassword) {
       console.error('As senhas não coincidem');
       alert('As senhas não coincidem.');
       return;
     }
-
-    fetch('http://localhost:8080/cadastrarUsuario', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(novoUser)
-    })
-    .then(response => {
-      if (response.ok) {
-        return response.json();
+  
+    try {
+      const response = await fetch('http://localhost:8080/cadastrarUsuario', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          nome: novoUser.name, // Certifique-se de que os nomes dos campos estão corretos
+          email: novoUser.email,
+          senha: novoUser.senha
+        })
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`Erro: ${response.status} - ${errorData.message}`);
       }
-      throw new Error('Network response was not ok.');
-    })
-    .then(data => {
+  
+      const data = await response.json();
       console.log('Usuário cadastrado com sucesso:', data);
-    
-    })
-    .catch(error => {
-      console.error('Houve um problema com a requisição:', error);
-      
-    });
+      alert('Usuário cadastrado com sucesso.');
+  
+    } catch (error: any) {
+      console.error('Houve um problema com a requisição:', error.message);
+      alert('Houve um problema com a requisição: ' + error.message);
+    }
   };
+  
 
   return (
     <div className="flex h-screen justify-center items-center p-1">
@@ -88,13 +100,13 @@ export const Cadastro = () => {
               />
             </div>
             <div className="mb-4">
-              <label htmlFor="password" className="mb-2 block">Senha</label>
+              <label htmlFor="senha" className="mb-2 block">Senha</label>
               <input
                 type="password"
-                id="password"
-                name="password"
+                id="senha"
+                name="senha"
                 className="p-2 border border-gray-300 rounded w-full bg-gray-200"
-                value={novoUser.password}
+                value={novoUser.senha}
                 onChange={handleChange}
               />
             </div>
