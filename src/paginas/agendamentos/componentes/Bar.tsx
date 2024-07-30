@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { FaBars, FaSignOutAlt } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 
 export const Bar: React.FC<{ img: string }> = ({ img }) => {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
 
-  const togglebar = () => {
+  const toggleBar = () => {
     setIsOpen(!isOpen);
   };
 
@@ -15,17 +17,17 @@ export const Bar: React.FC<{ img: string }> = ({ img }) => {
           src={img}
           alt="Menu"
           className="w-12 h-12 cursor-pointer"
-          onClick={togglebar}
+          onClick={toggleBar}
         />
       </div>
       <nav className={`flex flex-col items-${isOpen ? 'start' : 'center'} mt-4 space-y-4`}>
         {isOpen && (
           <>
-            <NavItem text="módulo-cadastros" />
-            <NavItem text="usuarios" />
-            <NavItem text="medicos" />
-            <NavItem text="pacientes" />
-            <NavItem text="agendamentos" />
+            <NavItem text="módulo-cadastros" action={() => navigate('/home')} />
+            <NavItem text="usuarios" action={() => {}} />
+            <NavItem text="medicos" action={() => navigate('/medicos')} />
+            <NavItem text="pacientes" action={() => navigate('/pacientes')} />
+            <NavItem text="agendamentos" action={() => navigate('/agendamentos')} />
           </>
         )}
       </nav>
@@ -39,8 +41,8 @@ export const Bar: React.FC<{ img: string }> = ({ img }) => {
   );
 };
 
-const NavItem: React.FC<{ text: string }> = ({ text }) => (
-  <a href="#" className="text-black hover:text-[#089B93] px-4 py-2">
+const NavItem: React.FC<{ text: string; action: () => void }> = ({ text, action }) => (
+  <a onClick={action} className="cursor-pointer text-black hover:text-[#089B93] px-4 py-2">
     {text}
   </a>
 );

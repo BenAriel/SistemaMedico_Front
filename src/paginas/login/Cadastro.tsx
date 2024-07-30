@@ -1,8 +1,13 @@
 import { RetanguloVerde } from './componentes/RetanguloVerde';
 import { Botao } from './componentes/Botao';
 import { useState } from 'react';
+import validator from 'validator';
+import { UseAuth } from '../autenticar/UseAuth';
+import { useNavigate } from 'react-router-dom';
 
 export const Cadastro = () => {
+  const navigate = useNavigate();
+  const { setUser } = UseAuth();
   const [novoUser, setNovoUser] = useState({
     name: '',
     email: '',
@@ -10,36 +15,65 @@ export const Cadastro = () => {
   });
 
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [errors, setErrors] = useState({
+    name: '',
+    email: '',
+    senha: '',
+    confirmPassword: '',
+    general: ''
+  });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
     if (id === 'confirmPassword') {
       setConfirmPassword(value);
+      setErrors((prevErrors) => ({
+        ...prevErrors,
+        confirmPassword: '',
+        general: ''
+      }));
     } else {
-      setNovoUser((prevUser) => {
-        const updatedUser = {
-          ...prevUser,
-          [id]: value
-        };
-        console.log(updatedUser);
-        return updatedUser;
-      });
+      setNovoUser((prevUser) => ({
+        ...prevUser,
+        [id]: value
+      }));
+      setErrors((prevErrors) => ({
+        ...prevErrors,
+        [id]: '',
+        general: ''
+      }));
     }
   };
 
   const handleOnClick = async () => {
-    // Validação básica
-    if (!novoUser.name || !novoUser.email || !novoUser.senha) {
-      alert('Todos os campos são obrigatórios.');
-      return;
+    const newErrors = { name: '', email: '', senha: '', confirmPassword: '', general: '' };
+    let hasError = false;
+
+    if (!novoUser.name) {
+      newErrors.name = 'O campo não pode ser vazio';
+      hasError = true;
     }
-  
+    if (!novoUser.email) {
+      newErrors.email = 'O campo não pode ser vazio';
+      hasError = true;
+    } else if (!validator.isEmail(novoUser.email)) {
+      newErrors.email = 'Email não é válido';
+      hasError = true;
+    }
+    if (!novoUser.senha) {
+      newErrors.senha = 'O campo não pode ser vazio';
+      hasError = true;
+    }
     if (novoUser.senha !== confirmPassword) {
-      console.error('As senhas não coincidem');
-      alert('As senhas não coincidem.');
+      newErrors.confirmPassword = 'As senhas não coincidem';
+      hasError = true;
+    }
+
+    if (hasError) {
+      setErrors(newErrors);
       return;
     }
-  
+
     try {
       const response = await fetch('http://localhost:8080/cadastrarUsuario', {
         method: 'POST',
@@ -47,27 +81,36 @@ export const Cadastro = () => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          nome: novoUser.name, // Certifique-se de que os nomes dos campos estão corretos
+          nome: novoUser.name,
           email: novoUser.email,
           senha: novoUser.senha
         })
       });
-  
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(`Erro: ${response.status} - ${errorData.message}`);
+        const errorData = await response.json().catch(() => ({}));
+        if (response.status === 409) {
+          newErrors.general = 'Email já está cadastrado';
+        } else {
+          newErrors.general = `Erro: ${response.status} - ${errorData.mensagem || 'Erro desconhecido'}`;
+        }
+        throw new Error(newErrors.general);
       }
-  
+
       const data = await response.json();
       console.log('Usuário cadastrado com sucesso:', data);
       alert('Usuário cadastrado com sucesso.');
-  
+      setUser(data.nome);
+      navigate('/home');
+
     } catch (error: any) {
       console.error('Houve um problema com a requisição:', error.message);
-      alert('Houve um problema com a requisição: ' + error.message);
+      setErrors((prevErrors) => ({
+        ...prevErrors,
+        general: error.message
+      }));
     }
   };
-  
 
   return (
     <div className="flex h-screen justify-center items-center p-1">
@@ -76,17 +119,18 @@ export const Cadastro = () => {
         <div className="w-full md:w-1/2 bg-white flex flex-col justify-center items-center p-5">
           <h1 className="text-[#0F8982] text-2xl mb-2">Criar conta</h1>
           <p className="text-gray-600 text-sm mb-4">Preencha as informações abaixo para criar uma nova conta no sistema.</p>
-          <form className="flex flex-col w-full px-8">
+          <form onSubmit={e => e.preventDefault()} className="flex flex-col w-full px-8">
             <div className="mb-4">
               <label htmlFor="name" className="mb-2 block">Nome</label>
               <input
                 type="text"
                 id="name"
                 name="name"
-                className="p-2 border border-gray-300 rounded w-full bg-gray-200"
+                className={`p-2 border ${errors.name ? 'border-red-500' : 'border-gray-300'} rounded w-full bg-gray-200`}
                 value={novoUser.name}
                 onChange={handleChange}
               />
+              {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
             </div>
             <div className="mb-4">
               <label htmlFor="email" className="mb-2 block">E-mail</label>
@@ -94,10 +138,11 @@ export const Cadastro = () => {
                 type="text"
                 id="email"
                 name="email"
-                className="p-2 border border-gray-300 rounded w-full bg-gray-200"
+                className={`p-2 border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded w-full bg-gray-200`}
                 value={novoUser.email}
                 onChange={handleChange}
               />
+              {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
             </div>
             <div className="mb-4">
               <label htmlFor="senha" className="mb-2 block">Senha</label>
@@ -105,10 +150,11 @@ export const Cadastro = () => {
                 type="password"
                 id="senha"
                 name="senha"
-                className="p-2 border border-gray-300 rounded w-full bg-gray-200"
+                className={`p-2 border ${errors.senha ? 'border-red-500' : 'border-gray-300'} rounded w-full bg-gray-200`}
                 value={novoUser.senha}
                 onChange={handleChange}
               />
+              {errors.senha && <p className="text-red-500 text-xs mt-1">{errors.senha}</p>}
             </div>
             <div className="mb-4">
               <label htmlFor="confirmPassword" className="mb-2 block">Confirme a senha</label>
@@ -116,12 +162,14 @@ export const Cadastro = () => {
                 type="password"
                 id="confirmPassword"
                 name="confirmPassword"
-                className="p-2 border border-gray-300 rounded w-full bg-gray-200"
+                className={`p-2 border ${errors.confirmPassword ? 'border-red-500' : 'border-gray-300'} rounded w-full bg-gray-200`}
                 value={confirmPassword}
                 onChange={handleChange}
               />
+              {errors.confirmPassword && <p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>}
             </div>
-            <Botao texto="Finalizar cadastro" handleOnClick={handleOnClick} />
+            {errors.general && <p className="text-red-500 text-xs mb-4">{errors.general}</p>}
+            <Botao texto="Criar conta" handleOnClick={handleOnClick} />
           </form>
         </div>
       </div>

@@ -2,10 +2,13 @@ import { RetanguloVerde } from './componentes/RetanguloVerde';
 import { useState } from 'react';
 import { Botao } from './componentes/Botao';
 import { useNavigate } from 'react-router-dom';
+import { UseAuth } from '../autenticar/UseAuth';
 
 export const Login = () => {
-  const [formData, setFormData] = useState({ username: '', password: '' });
-  const navigate = useNavigate();  
+  const [formData, setFormData] = useState({ email: '', senha: '' });
+  const [errors, setErrors] = useState({ email: '', senha: '', general: '' });
+  const navigate = useNavigate();
+  const { setUser } = UseAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
@@ -13,9 +16,32 @@ export const Login = () => {
       ...prevData,
       [id]: value,
     }));
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      [id]: '',
+      general: '',
+    }));
   };
 
   const handleOnClick = () => {
+    const newErrors = { email: '', senha: '', general: '' };
+    let hasError = false;
+
+    if (!formData.email) {
+      newErrors.email = 'O campo não pode ser vazio';
+      hasError = true;
+    }
+
+    if (!formData.senha) {
+      newErrors.senha = 'O campo não pode ser vazio';
+      hasError = true;
+    }
+
+    if (hasError) {
+      setErrors(newErrors);
+      return;
+    }
+
     fetch('http://localhost:8080/login', {
       method: 'POST',
       headers: {
@@ -31,11 +57,47 @@ export const Login = () => {
       })
       .then((data) => {
         console.log('Login successful:', data);
-        navigate('/cadastrar');
+        setUser(data.nome);
+        navigate('/home');
       })
       .catch((error) => {
         console.error('Error during login:', error);
-        alert('Login failed');
+        setErrors((prevErrors) => ({
+          ...prevErrors,
+          general: 'Usuário ou senha incorretos',
+        }));
+      });
+  };
+  const handleEsqueceuSenha = () => {
+    if (!formData.email) {
+      setErrors((prevErrors) => ({
+        ...prevErrors,
+        email: 'O campo não pode ser vazio',
+      }));
+      return;
+    }
+
+    fetch('http://localhost:8080/recuperarSenha', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email: formData.email }),
+    })
+      .then((response) => {
+        if (response.ok) {
+          alert('Código de recuperação enviado para o email');
+          navigate('/recuperar');
+        } else {
+          return response.text().then(text => { throw new Error(text) });
+        }
+      })
+      .catch((error) => {
+        setErrors((prevErrors) => ({
+          ...prevErrors,
+          email: error.message.includes('não cadastrada') ? 'Não é possível recuperar acesso de conta não cadastrada' : '',
+          general: error.message,
+        }));
       });
   };
 
@@ -48,34 +110,51 @@ export const Login = () => {
           <p className="text-gray-600 text-sm mb-4">
             Bem-vindo(a)! Por favor, digite suas credenciais para ter acesso ao sistema.
           </p>
-          <form className="flex flex-col w-full px-8">
+          <form onSubmit={e => e.preventDefault()} className="flex flex-col w-full px-8">
             <div className="mb-4">
-              <label htmlFor="username" className="mb-2 block">
+              <label htmlFor="email" className="mb-2 block">
                 Usuário
               </label>
               <input
-                type="text"
-                id="username"
-                name="username"
-                className="p-2 border border-gray-300 rounded w-full bg-gray-200"
-                value={formData.username}
+                type="email"
+                id="email"
+                name="email"
+                className={`p-2 border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded w-full bg-gray-200`}
+                value={formData.email}
                 onChange={handleChange}
               />
+              {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
             </div>
             <div className="mb-4">
-              <label htmlFor="password" className="mb-2 block">
+              <label htmlFor="senha" className="mb-2 block">
                 Senha
               </label>
               <input
                 type="password"
-                id="password"
-                name="password"
-                className="p-2 border border-gray-300 rounded w-full bg-gray-200"
-                value={formData.password}
+                id="senha"
+                name="senha"
+                className={`p-2 border ${errors.senha ? 'border-red-500' : 'border-gray-300'} rounded w-full bg-gray-200`}
+                value={formData.senha}
                 onChange={handleChange}
               />
+              {errors.senha && <p className="text-red-500 text-xs mt-1">{errors.senha}</p>}
             </div>
+            {errors.general && <p className="text-red-500 text-xs mb-4">{errors.general}</p>}
             <Botao texto="Entrar na conta" handleOnClick={handleOnClick} />
+            <div className="flex justify-between mt-4">
+              <button
+                onClick={handleEsqueceuSenha}
+                className="text-xs text-red-500 hover:underline"
+              >
+                Esqueceu sua senha?
+              </button>
+              <button
+                onClick={() => navigate('/cadastrar')}
+                className="text-xs text-green-500 hover:underline"
+              >
+                Cadastrar
+              </button>
+            </div>
           </form>
         </div>
       </div>
