@@ -77,6 +77,10 @@ export const EditarAgendamentos = () => {
         }
     };
 
+    const handleSair = () => {
+        navigate('/agendamentos');
+     }
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
 
@@ -156,7 +160,7 @@ export const EditarAgendamentos = () => {
     
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
-                throw new Error(`Erro: ${response.status} - ${errorData.message}`);
+                throw new Error(`Erro: - ${errorData.menssagem}`);
             }
     
             const data = await response.json();
@@ -165,7 +169,7 @@ export const EditarAgendamentos = () => {
     
         } catch (error: any) {
             console.error('Houve um problema com a requisição:', error.message);
-            alert('Houve um problema com a requisição: ' + error.message);
+            alert('Já existe um agendamento para esse horario.');
         }
     };
     return (
@@ -250,7 +254,7 @@ export const EditarAgendamentos = () => {
                     />
                 </div>
                 <div className="flex justify-end space-x-4">
-                    <button className="text-red-600">Cancelar</button>
+                    <button onClick={handleSair} className="text-red-600">Cancelar</button>
                     <button
                         onClick={handleOnClick}
                         className="bg-[#0F8982] text-white p-2 rounded shadow-md hover:bg-[#0A5F58]"

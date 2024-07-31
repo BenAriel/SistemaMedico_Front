@@ -44,6 +44,9 @@ export const Cadastro = () => {
       }));
     }
   };
+  const handleSair = () => {
+    navigate('/');
+ }
 
   const handleOnClick = async () => {
     const newErrors = { name: '', email: '', senha: '', confirmPassword: '', general: '' };
@@ -170,6 +173,10 @@ export const Cadastro = () => {
             </div>
             {errors.general && <p className="text-red-500 text-xs mb-4">{errors.general}</p>}
             <Botao texto="Criar conta" handleOnClick={handleOnClick} />
+            <button
+                onClick={handleSair}
+                className="text-xs text-red-500 hover:underline"
+              >cancelar</button>
           </form>
         </div>
       </div>

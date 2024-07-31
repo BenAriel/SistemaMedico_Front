@@ -51,6 +51,10 @@ export const CadastrarMedicos = () => {
         'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'
     ];
 
+    const handleSair = () => {
+        navegar('/medicos');
+     }
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setMedico((prevMedico) => ({ ...prevMedico, [name]: value }));
@@ -313,7 +317,7 @@ export const CadastrarMedicos = () => {
                     />
                 </div>
                 <div className="flex justify-end space-x-4">
-                    <button className="text-red-600">Cancelar</button>
+                    <button  onClick={handleSair} className="text-red-600">Cancelar</button>
                     <button
                         onClick={handleOnClick}
                         className="bg-[#0F8982] text-white p-2 rounded shadow-md hover:bg-[#0A5F58]"

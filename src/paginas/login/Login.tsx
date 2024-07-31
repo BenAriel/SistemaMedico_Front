@@ -23,7 +23,7 @@ export const Login = () => {
     }));
   };
 
-  const handleOnClick = () => {
+  const handleOnClick = async () => {
     const newErrors = { email: '', senha: '', general: '' };
     let hasError = false;
 
@@ -42,33 +42,33 @@ export const Login = () => {
       return;
     }
 
-    fetch('http://localhost:8080/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(formData),
-    })
-      .then((response) => {
-        if (response.ok) {
-          return response.json();
-        }
-        throw new Error('Login failed');
-      })
-      .then((data) => {
-        console.log('Login successful:', data);
-        setUser(data.nome);
-        navigate('/home');
-      })
-      .catch((error) => {
-        console.error('Error during login:', error);
-        setErrors((prevErrors) => ({
-          ...prevErrors,
-          general: 'Usuário ou senha incorretos',
-        }));
+    try {
+      const response = await fetch('http://localhost:8080/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
       });
+
+      if (!response.ok) {
+        throw new Error('Login failed');
+      }
+
+      const data = await response.json();
+      console.log('Login successful:', data);
+      setUser(data.nome);
+      navigate('/home');
+    } catch (error) {
+      console.error('Error during login:', error);
+      setErrors((prevErrors) => ({
+        ...prevErrors,
+        general: 'Usuário ou senha incorretos',
+      }));
+    }
   };
-  const handleEsqueceuSenha = () => {
+
+  const handleEsqueceuSenha = async () => {
     if (!formData.email) {
       setErrors((prevErrors) => ({
         ...prevErrors,
@@ -76,29 +76,30 @@ export const Login = () => {
       }));
       return;
     }
-
-    fetch('http://localhost:8080/recuperarSenha', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email: formData.email }),
-    })
-      .then((response) => {
-        if (response.ok) {
-          alert('Código de recuperação enviado para o email');
-          navigate('/recuperar');
-        } else {
-          return response.text().then(text => { throw new Error(text) });
-        }
-      })
-      .catch((error) => {
-        setErrors((prevErrors) => ({
-          ...prevErrors,
-          email: error.message.includes('não cadastrada') ? 'Não é possível recuperar acesso de conta não cadastrada' : '',
-          general: error.message,
-        }));
+  
+    try {
+      const response = await fetch('http://localhost:8080/recuperarSenha', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: formData.email }),
       });
+  
+      if (!response.ok) {
+        const errorMessage = await response.text();
+        throw new Error(errorMessage);
+      }
+  
+      alert('Código de recuperação enviado para o email');
+      navigate('/recuperar', { state: { email: formData.email } });
+    } catch (error: any) {
+      setErrors((prevErrors) => ({
+        ...prevErrors,
+        email: error.message.includes('não cadastrada') ? 'Não é possível recuperar acesso de conta não cadastrada' : '',
+        general: error.message,
+      }));
+    }
   };
 
   return (

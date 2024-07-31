@@ -61,6 +61,9 @@ export const EditarPacientes = () => {
         setErros((prevErros) => ({ ...prevErros, [name]: false }));
 
     };
+    const handleSair = () => {
+        navegar('/pacientes');
+     }
 
     const handleOnClick = async () => {
         const novosErros: Partial<Record<keyof Paciente, boolean>> = {};
@@ -334,7 +337,7 @@ export const EditarPacientes = () => {
                     </div>
                 </div>
                 <div className="flex justify-end space-x-4">
-                    <button className="text-red-600">Cancelar</button>
+                    <button  onClick={handleSair} className="text-red-600">Cancelar</button>
                     <button
                         onClick={handleOnClick}
                         className="bg-[#0F8982] text-white p-2 rounded shadow-md hover:bg-[#0A5F58]"

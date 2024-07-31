@@ -11,7 +11,7 @@ export const Bar: React.FC<{ img: string }> = ({ img }) => {
   };
 
   return (
-    <div className={`fixed top-0 left-0 h-full bg-white shadow-lg transition-width duration-300 ${isOpen ? 'w-32' : 'w-16'}`}>
+    <div className={`fixed top-0 left-0 h-full bg-white shadow-lg transition-width duration-300 ${isOpen ? 'w-48' : 'w-20'}`}>
       <div className="flex items-center justify-center h-16">
         <img
           src={img}

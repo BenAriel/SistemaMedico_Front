@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { RetanguloVerde } from './componentes/RetanguloVerde';
 import { Botao } from './componentes/Botao';
 
@@ -7,8 +7,10 @@ export const RecuperarAcesso = () => {
   const [formData, setFormData] = useState({ codigo: '' });
   const [errors, setErrors] = useState({ codigo: '', general: '' });
   const navigate = useNavigate();
+  const location = useLocation();
+  const email = location.state?.email;
 
-  const handleChange = (e:React.ChangeEvent<HTMLInputElement>) => { 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
     setFormData((prevData) => ({
       ...prevData,
@@ -20,8 +22,11 @@ export const RecuperarAcesso = () => {
       general: '',
     }));
   };
+  const handleSair = () => {
+    navigate('/');
+ }
 
-  const handleOnClick = () => {
+  const handleOnClick = async () => {
     const newErrors = { codigo: '', general: '' };
     let hasError = false;
 
@@ -35,10 +40,22 @@ export const RecuperarAcesso = () => {
       return;
     }
 
-    const codigoEsperado = '123456'; // Substitua pelo método de verificação do código de recuperação
-    if (formData.codigo === codigoEsperado) {
-      navigate('/alterar');
-    } else {
+    try {
+      const response = await fetch('http://localhost:8080/verificarCodigo', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, codigo: formData.codigo }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Código incorreto');
+      }
+
+      alert('Código verificado com sucesso!');
+      navigate('/alterar', { state: { email } }); 
+    } catch (error) {
       setErrors((prevErrors) => ({
         ...prevErrors,
         codigo: 'Código incorreto',
@@ -55,7 +72,7 @@ export const RecuperarAcesso = () => {
           <p className="text-gray-600 text-sm mb-4">
             Informe o código de recuperação enviado para seu email e recupere o acesso à sua conta.
           </p>
-          <form onSubmit={e => e.preventDefault()} className="flex flex-col w-full px-8">
+          <form onSubmit={(e) => e.preventDefault()} className="flex flex-col w-full px-8">
             <div className="mb-4">
               <label htmlFor="codigo" className="mb-2 block">
                 Código de recuperação
@@ -72,6 +89,10 @@ export const RecuperarAcesso = () => {
             </div>
             {errors.general && <p className="text-red-500 text-xs mb-4">{errors.general}</p>}
             <Botao texto="Verificar" handleOnClick={handleOnClick} />
+            <button
+                onClick={handleSair}
+                className="text-xs text-red-500 hover:underline"
+              >cancelar</button>
           </form>
         </div>
       </div>

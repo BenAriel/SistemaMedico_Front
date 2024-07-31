@@ -29,7 +29,7 @@ export const EditarMedicos = () => {
     const { user } = UseAuth();
     const navegar = useNavigate();
 
-    // Inicializa o médico com o estado recebido da navegação ou valores padrão
+    
     const medicoInicial: Medico = location.state?.medico || {
         id: 0,
         nomeCompleto: '',
@@ -50,26 +50,29 @@ export const EditarMedicos = () => {
 
     const [medico, setMedico] = useState<Medico>(medicoInicial);
 
-    // Estado para erros
+   
     const [erros, setErros] = useState<Partial<Record<keyof Medico, boolean>>>({});
 
     const estadosBrasil = [
         'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'
     ];
 
-    // Função de mudança para o estado do médico
+  
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setMedico((prevMedico) => ({ ...prevMedico, [name]: value }));
         setErros((prevErros) => ({ ...prevErros, [name]: false }));
     };
+    const handleSair = () => {
+        navegar('/medicos');
+     }
 
-    // Função que é chamada ao clicar em "Salvar"
+    
     const handleOnClick = async () => {
         const novosErros: Partial<Record<keyof Medico, boolean>> = {};
         let hasError = false;
 
-        // Checagem dos campos do formulário, evitando 'undefined'
+        
         if (!(medico.nomeCompleto || '').trim()) {
             novosErros.nomeCompleto = true;
             hasError = true;
@@ -129,7 +132,6 @@ export const EditarMedicos = () => {
             return;
         }
 
-        // Tenta enviar os dados para o backend
         try {
             const response = await fetch(`http://localhost:8080/alterarMedico`, {
                 method: 'PUT',
@@ -339,7 +341,8 @@ export const EditarMedicos = () => {
                         </label>
                     </div>
                 </div>
-                <div className="flex justify-end">
+                <div className="flex justify-end space-x-4">
+                <button  onClick={handleSair} className="text-red-600">Cancelar</button>
                     <button
                         className="bg-[#0F8982] text-white py-2 px-4 rounded"
                         onClick={handleOnClick}

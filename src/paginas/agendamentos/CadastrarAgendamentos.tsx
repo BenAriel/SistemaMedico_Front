@@ -60,6 +60,10 @@ export const CadastrarAgendamentos = () => {
         setErros((prevErros) => ({ ...prevErros, [name]: false }));
     };
 
+    const handleSair = () => {
+        navegar('/agendamentos');
+     }
+
     const handleOnClick = async () => {
         const novosErros: Partial<Record<keyof Agendamento, boolean>> = {};
         let hasError = false;
@@ -118,7 +122,7 @@ export const CadastrarAgendamentos = () => {
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(`Erro: ${response.status} - ${errorData.message}`);
+                throw new Error(`Erro:  - ${errorData.message}`);
             }
 
             const data = await response.json();
@@ -128,7 +132,7 @@ export const CadastrarAgendamentos = () => {
 
         } catch (error: any) {
             console.error('Houve um problema com a requisição:', error.message);
-            alert('Houve um problema com a requisição: ' + error.message);
+            alert('Já possui agendamento nesse horario');
         }
     };
 
@@ -214,7 +218,7 @@ export const CadastrarAgendamentos = () => {
                     />
                 </div>
                 <div className="flex justify-end space-x-4">
-                    <button className="text-red-600">Cancelar</button>
+                    <button onClick={handleSair} className="text-red-600">Cancelar</button>
                     <button
                         onClick={handleOnClick}
                         className="bg-[#0F8982] text-white p-2 rounded shadow-md hover:bg-[#0A5F58]"
